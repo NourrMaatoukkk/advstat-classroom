@@ -55,18 +55,20 @@ doctors_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
+# Ensure removed doctor names are not present
+doctors_data <- doctors_data %>%
+  filter(!grepl("Ahmed Alyasergy", Doctor_Name, ignore.case = TRUE))
+
 # Subjects Data
 subjects_data <- data.frame(
   Subject_ID = c("CS101", "CS102", "CS201", "CS202", "CS301"),
-  Subject_Name = c("Introduction to Programming", "Data Structures", "Artificial Intelligence",
+  Subject_Name = c("Introduction to Programming", "Advanced Statistics", "Artificial Intelligence",
                    "Machine Learning", "Computer Vision"),
   Doctor_ID = c(2001, 2001, 2001, 2002, 2002),
   Credits = c(3, 4, 3, 4, 3),
   Semester = c("Fall 2026", "Fall 2026", "Spring 2026", "Spring 2026", "Fall 2026"),
   stringsAsFactors = FALSE
 )
-
-subjects_data$Subject_Name[subjects_data$Doctor_ID == 2001 & subjects_data$Subject_ID == "CS102"] <- "Advanced Statistics"
 
 # Student Enrollments
 enrollments <- expand.grid(
@@ -90,9 +92,20 @@ for(i in 1:nrow(enrollments)) {
   }
 }
 
-featured_students <- c("نور احمد محمد", "احمد فوزى الياسرجى", "ريم حسين حسن", "ادهم هانى اسماعيل")
+normalize_name <- function(x) {
+  x[is.na(x)] <- ""
+  x <- trimws(x)
+  x <- gsub("\\s+", " ", x)
+  tolower(x)
+}
+
+featured_students <- unique(c(
+  "نور احمد محمد", "احمد فوزى الياسرجى", "ريم حسين حسن", "ادهم هانى اسماعيل",
+  "nour ahmed moahmed", "nour ahmed mohamed", "ahmed fawzy alyasergy", "reem hussein", "adham hany"
+))
 featured_ids <- students_data %>%
-  filter(Student_Name %in% featured_students) %>%
+  mutate(Student_Name_Normalized = normalize_name(Student_Name)) %>%
+  filter(Student_Name_Normalized %in% normalize_name(featured_students)) %>%
   pull(Student_ID)
 
 if(length(featured_ids) > 0) {
